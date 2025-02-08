@@ -1,0 +1,3 @@
+path = "/etc/rspamd/dkim/$selector.key";
+selector_map = "/etc/rspamd/dkim_selectors.map";
+selector = {{ environ('RSPAMD_DKIM_DEFAULT_SELECTOR') }}

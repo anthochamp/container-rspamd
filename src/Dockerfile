@@ -1,8 +1,20 @@
-# alpine 3.19.1 comes with rspamd 3.8.1
-FROM alpine:3.21.3@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c
+FROM rspamd/rspamd:3.11.1
 
-# hadolint ignore=DL3018
-RUN apk add --update --no-cache jinja2-cli rspamd rspamd-client
+# rspamd sets user/group to _rspamd:_rspamd
+# We need root access on Dockerfile & docker-entrypoint.sh, lets put back
+# initial user 0 and we'll execute pgadmin later with runuser.
+# hadolint ignore=DL3002
+USER 0
+
+# hadolint ignore=DL3008
+RUN set -ex; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends pipx; \
+	apt-get clean; \
+	rm -rf /var/lib/apt/lists/*
+
+# hadolint ignore=DL3013
+RUN pipx install jinja2-cli
 
 COPY --chmod=644 /rootfs/config /etc/rspamd/
 
@@ -15,7 +27,7 @@ COPY --chmod=755 /rootfs/docker-entrypoint.sh /
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 
-CMD [ "rspamd", "-f", "-u", "rspamd", "-g", "rspamd" ]
+CMD [ "rspamd", "-f", "-u", "_rspamd", "-g", "_rspamd" ]
 
 HEALTHCHECK \
 	CMD rspamc uptime || exit 1

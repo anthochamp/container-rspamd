@@ -39,7 +39,9 @@ export RSPAMD_DKIM_DEFAULT_SELECTOR="${RSPAMD_DKIM_DEFAULT_SELECTOR:-}"
 export RSPAMD_DKIM_DOMAINS_SELECTORS="${RSPAMD_DKIM_DOMAINS_SELECTORS:-}"
 
 j2Templates="
+/etc/rspamd/local.d/classifier-bayes.conf
 /etc/rspamd/local.d/dkim_signing.conf
+/etc/rspamd/local.d/greylist.conf
 /etc/rspamd/local.d/history_redis.conf
 /etc/rspamd/local.d/logging.inc
 /etc/rspamd/local.d/options.inc
@@ -48,15 +50,14 @@ j2Templates="
 "
 
 for file in $j2Templates; do
-	jinja2 -o "$file" "$file.j2"
+	/root/.local/bin/jinja2 -o "$file" "$file.j2"
 
-	# can't use --reference with alpine
-	chmod "$(stat -c '%a' "$file.j2")" "$file"
-	chown "$(stat -c '%U:%G' "$file.j2")" "$file"
+	chmod --reference="$file.j2" "$file"
+	chown --reference="$file.j2" "$file"
 done
 
 # ensure mounted volumes owners
 chown -R root:root /etc/rspamd/dkim || true
-chown -R rspamd:rspamd /var/lib/rspamd || true
+chown -R _rspamd:_rspamd /var/lib/rspamd || true
 
 exec "$@"

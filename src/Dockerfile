@@ -1,4 +1,4 @@
-FROM rspamd/rspamd:3.11.1@sha256:ad4e4cd6f2f882ca562e9e67ca543402aa7a30e11670457bcff9055876023866
+FROM rspamd/rspamd:3.11.1@sha256:116c2e05bb03073f5ff3b41f407fb5f9ac13ae726e8f8d0cd56231e97d49d7b7
 
 # rspamd sets user/group to _rspamd:_rspamd
 # We need root access on Dockerfile & docker-entrypoint.sh, lets put back

@@ -1,0 +1,11 @@
+# ARC signing
+
+path = "/etc/rspamd/arc/$selector.key";
+selector_map = "/etc/rspamd/arc_selectors.map";
+selector = {{ environ('RSPAMD_ARC_DEFAULT_SELECTOR') }}
+
+sign_authenticated = true;
+sign_local = true;
+sign_inbound = false;
+use_domain = "header";
+allow_headers_fallback = true;

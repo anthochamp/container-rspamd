@@ -21,7 +21,7 @@ COPY --chmod=644 /rootfs/config /etc/rspamd/
 # 11332 (worker proxy), 11334 (controller)
 EXPOSE 11332 11334
 
-VOLUME ["/etc/rspamd/dkim/", "/var/lib/rspamd/"]
+VOLUME ["/etc/rspamd/arc/", "/etc/rspamd/dkim/", "/var/lib/rspamd/"]
 
 COPY --chmod=755 /rootfs/docker-entrypoint.sh /
 

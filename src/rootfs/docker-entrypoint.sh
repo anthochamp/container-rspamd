@@ -37,8 +37,11 @@ export RSPAMD_REDIS_HOST="${RSPAMD_REDIS_HOST:-}"
 export RSPAMD_DNS_HOST="${RSPAMD_DNS_HOST:-}"
 export RSPAMD_DKIM_DEFAULT_SELECTOR="${RSPAMD_DKIM_DEFAULT_SELECTOR:-}"
 export RSPAMD_DKIM_DOMAINS_SELECTORS="${RSPAMD_DKIM_DOMAINS_SELECTORS:-}"
+export RSPAMD_ARC_DEFAULT_SELECTOR="${RSPAMD_ARC_DEFAULT_SELECTOR:-}"
+export RSPAMD_ARC_DOMAINS_SELECTORS="${RSPAMD_ARC_DOMAINS_SELECTORS:-}"
 
 j2Templates="
+/etc/rspamd/local.d/arc.conf
 /etc/rspamd/local.d/classifier-bayes.conf
 /etc/rspamd/local.d/dkim_signing.conf
 /etc/rspamd/local.d/greylist.conf
@@ -46,6 +49,7 @@ j2Templates="
 /etc/rspamd/local.d/logging.inc
 /etc/rspamd/local.d/options.inc
 /etc/rspamd/local.d/redis.conf
+/etc/rspamd/arc_selectors.map
 /etc/rspamd/dkim_selectors.map
 "
 
@@ -58,6 +62,7 @@ done
 
 # ensure mounted volumes owners
 chown -R root:root /etc/rspamd/dkim || true
+chown -R root:root /etc/rspamd/arc || true
 chown -R _rspamd:_rspamd /var/lib/rspamd || true
 
 exec "$@"

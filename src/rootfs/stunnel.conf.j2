@@ -1,0 +1,35 @@
+setuid = stunnel4
+setgid = stunnel4
+pid = /run/stunnel/stunnel.pid
+
+socket = l:TCP_NODELAY=1
+socket = r:TCP_NODELAY=1
+
+foreground=yes
+syslog=yes
+
+[loopback]
+client = yes
+accept = 127.0.0.1:54321
+connect = 127.0.0.1:54320
+
+{% if environ('RSPAMD_FUZZY_STORAGE_SERVER') | length > 0 and environ('RSPAMD_FUZZY_STORAGE_TLS') == '1' %}
+[fuzzy_storage]
+client = yes
+accept = 127.0.0.20:11335
+connect = {{ environ('RSPAMD_FUZZY_STORAGE_SERVER') }}
+
+  {% if environ('RSPAMD_FUZZY_STORAGE_TLS_CA_FILE') | length > 0 %}
+CAfile = {{ environ('RSPAMD_FUZZY_STORAGE_TLS_CA_FILE') }}
+  {% else %}
+CApath = /etc/ssl/certs
+  {% endif %}
+
+  {% if environ('RSPAMD_FUZZY_STORAGE_TLS_CERT_FILE') | length > 0 and environ('RSPAMD_FUZZY_STORAGE_TLS_CERT_KEY_FILE') | length > 0 %}
+cert = {{ environ('RSPAMD_FUZZY_STORAGE_TLS_CERT_FILE') }}
+key = {{ environ('RSPAMD_FUZZY_STORAGE_TLS_CERT_KEY_FILE') }}
+  {% endif %}
+
+verifyChain = {% if environ('RSPAMD_FUZZY_STORAGE_TLS_SKIP_VERIFY') == '0' %}yes{% else %}no{% endif %}
+
+{% endif %}

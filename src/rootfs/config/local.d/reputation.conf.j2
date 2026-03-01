@@ -1,0 +1,68 @@
+# IP/Domain/URL Reputation tracking
+# Tracks sender reputation based on historical behavior
+# Requires Redis backend for storing reputation data
+
+{% if environ('RSPAMD_REDIS_HOST') -%}
+# Backend configuration
+backend = "redis";
+
+# Reputation rules
+rules {
+  # IP reputation based on spam/ham history
+  ip_reputation {
+    selector "ip" {
+    }
+    backend = "redis";
+    symbol = "IP_REPUTATION";
+
+    # Thresholds
+    lower_bound = 10;  # Need at least 10 messages to establish reputation
+    min_score = 0.1;
+    max_score = 5.0;
+
+    # Decay over time (reputation expires)
+    expire = 30d;
+  }
+
+  # Domain reputation (sender domain)
+  sender_domain_reputation {
+    selector "from('mime'):domain" {
+    }
+    backend = "redis";
+    symbol = "SENDER_DOMAIN_REPUTATION";
+
+    lower_bound = 5;
+    min_score = 0.1;
+    max_score = 3.0;
+    expire = 30d;
+  }
+
+  # SPF/DKIM/DMARC aligned domain reputation
+  spf_reputation {
+    selector "spf_domain" {
+    }
+    backend = "redis";
+    symbol = "SPF_REPUTATION";
+
+    lower_bound = 5;
+    min_score = 0.1;
+    max_score = 2.0;
+    expire = 30d;
+  }
+
+  dkim_reputation {
+    selector "dkim_domain" {
+    }
+    backend = "redis";
+    symbol = "DKIM_REPUTATION";
+
+    lower_bound = 5;
+    min_score = 0.1;
+    max_score = 2.0;
+    expire = 30d;
+  }
+}
+{%- else -%}
+# Reputation module disabled - requires RSPAMD_REDIS_HOST
+enabled = false;
+{%- endif %}

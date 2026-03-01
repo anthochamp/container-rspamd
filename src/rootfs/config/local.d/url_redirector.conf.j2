@@ -1,0 +1,39 @@
+# URL Redirector Module
+# Follows shortened URLs to check final destinations
+# Helps detect phishing and malicious links hidden behind URL shorteners
+
+{% if environ('RSPAMD_URL_REDIRECTOR_ENABLED') == '1' -%}
+# Enable URL redirector checking
+enabled = true;
+
+# Maximum number of redirects to follow
+max_redirects = {{ environ('RSPAMD_URL_REDIRECTOR_MAX_REDIRECTS', '5') }};
+
+# Connection timeout (seconds)
+timeout = {{ environ('RSPAMD_URL_REDIRECTOR_TIMEOUT', '10') }};
+
+# Maximum size of content to download (bytes)
+# Set to 0 to only fetch headers
+max_size = 0;
+
+# Nested workers for parallel processing
+nested_limit = {{ environ('RSPAMD_URL_REDIRECTOR_NESTED_LIMIT', '5') }};
+
+# Top-level domains to check (empty = all)
+# top_urls = ["bit.ly", "tinyurl.com", "goo.gl"];
+
+# Check only specific protocols
+protocols = ["http", "https"];
+
+# Cache redirects in Redis to avoid repeated lookups
+{% if environ('RSPAMD_REDIS_HOST') -%}
+redis {
+  servers = "{{ environ('RSPAMD_REDIS_HOST') }}";
+  # Cache for 1 day
+  expire = 86400;
+}
+{%- endif %}
+{%- else -%}
+# URL redirector disabled
+enabled = false;
+{%- endif %}

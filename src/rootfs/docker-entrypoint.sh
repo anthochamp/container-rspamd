@@ -40,21 +40,64 @@ export RSPAMD_DKIM_DOMAINS_SELECTORS="${RSPAMD_DKIM_DOMAINS_SELECTORS:-}"
 export RSPAMD_ARC_DEFAULT_SELECTOR="${RSPAMD_ARC_DEFAULT_SELECTOR:-}"
 export RSPAMD_ARC_DOMAINS_SELECTORS="${RSPAMD_ARC_DOMAINS_SELECTORS:-}"
 
+# DMARC Reporting
+export RSPAMD_DMARC_REPORTING_ENABLED="${RSPAMD_DMARC_REPORTING_ENABLED:-0}"
+export RSPAMD_DMARC_REPORTING_FROM="${RSPAMD_DMARC_REPORTING_FROM:-}"
+export RSPAMD_DMARC_REPORTING_ORG_NAME="${RSPAMD_DMARC_REPORTING_ORG_NAME:-}"
+export RSPAMD_DMARC_REPORTING_DOMAIN="${RSPAMD_DMARC_REPORTING_DOMAIN:-}"
+export RSPAMD_DMARC_REPORTING_SMTP_HOST="${RSPAMD_DMARC_REPORTING_SMTP_HOST:-}"
+export RSPAMD_DMARC_REPORTING_SMTP_PORT="${RSPAMD_DMARC_REPORTING_SMTP_PORT:-587}"
+export RSPAMD_DMARC_REPORTING_SMTP_USERNAME="${RSPAMD_DMARC_REPORTING_SMTP_USERNAME:-}"
+export RSPAMD_DMARC_REPORTING_SMTP_PASSWORD="${RSPAMD_DMARC_REPORTING_SMTP_PASSWORD:-}"
+export RSPAMD_DMARC_REPORTING_SMTP_TLS="${RSPAMD_DMARC_REPORTING_SMTP_TLS:-starttls}"
+
+# Fuzzy Storage
+export RSPAMD_FUZZY_STORAGE_SERVER="${RSPAMD_FUZZY_STORAGE_SERVER:-}"
+export RSPAMD_FUZZY_STORAGE_KEY="${RSPAMD_FUZZY_STORAGE_KEY:-}"
+export RSPAMD_FUZZY_STORAGE_TLS="${RSPAMD_FUZZY_STORAGE_TLS:-0}"
+export RSPAMD_FUZZY_STORAGE_TLS_SKIP_VERIFY="${RSPAMD_FUZZY_STORAGE_TLS_SKIP_VERIFY:-0}"
+export RSPAMD_FUZZY_STORAGE_TLS_CA_FILE="${RSPAMD_FUZZY_STORAGE_TLS_CA_FILE:-}"
+export RSPAMD_FUZZY_STORAGE_TLS_CERT_FILE="${RSPAMD_FUZZY_STORAGE_TLS_CERT_FILE:-}"
+export RSPAMD_FUZZY_STORAGE_TLS_CERT_KEY_FILE="${RSPAMD_FUZZY_STORAGE_TLS_CERT_KEY_FILE:-}"
+export RSPAMD_FUZZY_UPSTREAM_ENABLED="${RSPAMD_FUZZY_UPSTREAM_ENABLED:-0}"
+
+if [ -n "$RSPAMD_FUZZY_STORAGE_SERVER" ]; then
+	if [ "$RSPAMD_FUZZY_STORAGE_TLS" -eq 1 ]; then
+		# TLS enabled - use stunnel
+		export _RSPAMD_FUZZY_STORAGE_SERVER="127.0.0.20:11335"
+	else
+		# No TLS - direct connection
+		export _RSPAMD_FUZZY_STORAGE_SERVER="$RSPAMD_FUZZY_STORAGE_SERVER"
+	fi
+fi
+
+# URL Redirector
+export RSPAMD_URL_REDIRECTOR_ENABLED="${RSPAMD_URL_REDIRECTOR_ENABLED:-0}"
+export RSPAMD_URL_REDIRECTOR_MAX_REDIRECTS="${RSPAMD_URL_REDIRECTOR_MAX_REDIRECTS:-5}"
+export RSPAMD_URL_REDIRECTOR_TIMEOUT="${RSPAMD_URL_REDIRECTOR_TIMEOUT:-10}"
+export RSPAMD_URL_REDIRECTOR_NESTED_LIMIT="${RSPAMD_URL_REDIRECTOR_NESTED_LIMIT:-5}"
+
 j2Templates="
 /etc/rspamd/local.d/arc.conf
 /etc/rspamd/local.d/classifier-bayes.conf
 /etc/rspamd/local.d/dkim_signing.conf
+/etc/rspamd/local.d/dmarc.conf
+/etc/rspamd/local.d/fuzzy_check.conf
 /etc/rspamd/local.d/greylist.conf
 /etc/rspamd/local.d/history_redis.conf
 /etc/rspamd/local.d/logging.inc
+/etc/rspamd/local.d/neural.conf
 /etc/rspamd/local.d/options.inc
 /etc/rspamd/local.d/redis.conf
+/etc/rspamd/local.d/reputation.conf
+/etc/rspamd/local.d/url_redirector.conf
 /etc/rspamd/arc_selectors.map
 /etc/rspamd/dkim_selectors.map
+/etc/stunnel/stunnel.conf
 "
 
 for file in $j2Templates; do
-	/root/.local/bin/jinja2 -o "$file" "$file.j2"
+	export | /root/.local/bin/jinja2 --format env -o "$file" "$file.j2"
 
 	chmod --reference="$file.j2" "$file"
 	chown --reference="$file.j2" "$file"

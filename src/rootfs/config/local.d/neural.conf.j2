@@ -1,0 +1,61 @@
+# Neural network module for advanced spam detection
+# Requires Redis backend for storing neural network data
+# 
+# The neural module learns from:
+# - Bayes classifier results
+# - Other statistical modules
+# - User actions (if learning is enabled)
+#
+# It maintains multiple neural networks for different purposes:
+# - Short-term network: learns from recent data (7 days retention)
+# - Long-term network: learns from long-term patterns (90 days retention)
+
+{% if environ('RSPAMD_REDIS_HOST') -%}
+servers = {{ environ('RSPAMD_REDIS_HOST') }};
+
+# Configure neural networks
+rules {
+  # Short-term neural network for recent patterns
+  "NEURAL_SPAM_SHORT" {
+    train {
+      max_trains = 1000;  # Train on first 1000 messages per day
+      max_usages = 20;     # Max times to use training data
+      spam_score = 6;      # Messages scoring >= 6 are spam
+      ham_score = -2;      # Messages scoring <= -2 are ham
+      learning_rate = 0.01;
+      max_iterations = 25;
+    }
+    
+    symbol_spam = "NEURAL_SPAM_SHORT";
+    symbol_ham = "NEURAL_HAM_SHORT";
+    
+    # Short-term window
+    ann_expire = 7d;  # Keep training data for 7 days
+  }
+  
+  # Long-term neural network for stable patterns
+  "NEURAL_SPAM_LONG" {
+    train {
+      max_trains = 5000;   # Train on more data for long-term
+      max_usages = 200;
+      spam_score = 6;
+      ham_score = -2;
+      learning_rate = 0.01;
+      max_iterations = 25;
+    }
+    
+    symbol_spam = "NEURAL_SPAM_LONG";
+    symbol_ham = "NEURAL_HAM_LONG";
+    
+    # Long-term window
+    ann_expire = 90d;  # Keep training data for 90 days
+  }
+}
+
+# Ensure neural learning happens from statistical data
+allow_local = true;
+allow_remote = true;
+{%- else -%}
+# Neural module disabled - requires RSPAMD_REDIS_HOST
+enabled = false;
+{%- endif %}

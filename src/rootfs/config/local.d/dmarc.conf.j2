@@ -1,0 +1,63 @@
+# DMARC module - aggregate report generation
+# Generates daily XML reports for domain owners with DMARC records
+# Requires SMTP configuration to send reports
+
+{% if environ('RSPAMD_DMARC_REPORTING_ENABLED') == '1' -%}
+# Enable aggregate reporting
+reporting {
+  enabled = true;
+  
+  # Email address to use as sender (FROM)
+  email = "{{ environ('RSPAMD_DMARC_REPORTING_FROM') }}";
+  
+  # Organization name in reports
+  {% if environ('RSPAMD_DMARC_REPORTING_ORG_NAME') -%}
+  org_name = "{{ environ('RSPAMD_DMARC_REPORTING_ORG_NAME') }}";
+  {%- endif %}
+  
+  # Domain name in reports
+  {% if environ('RSPAMD_DMARC_REPORTING_DOMAIN') -%}
+  domain = "{{ environ('RSPAMD_DMARC_REPORTING_DOMAIN') }}";
+  {%- endif %}
+  
+  # SMTP configuration
+  smtp = "{{ environ('RSPAMD_DMARC_REPORTING_SMTP_HOST') }}:{{ environ('RSPAMD_DMARC_REPORTING_SMTP_PORT') }}";
+  
+  {% if environ('RSPAMD_DMARC_REPORTING_SMTP_USERNAME') -%}
+  smtp_user = "{{ environ('RSPAMD_DMARC_REPORTING_SMTP_USERNAME') }}";
+  {%- endif %}
+  
+  {% if environ('RSPAMD_DMARC_REPORTING_SMTP_PASSWORD') -%}
+  smtp_pass = "{{ environ('RSPAMD_DMARC_REPORTING_SMTP_PASSWORD') }}";
+  {%- endif %}
+  
+  # TLS configuration
+  {% if environ('RSPAMD_DMARC_REPORTING_SMTP_TLS') == 'starttls' -%}
+  # Use STARTTLS (typically port 587)
+  helo = "{{ environ('RSPAMD_DMARC_REPORTING_DOMAIN', environ('RSPAMD_DMARC_REPORTING_FROM', 'localhost')) }}";
+  tls = true;
+  {%- elif environ('RSPAMD_DMARC_REPORTING_SMTP_TLS') == 'smtps' -%}
+  # Use implicit TLS/SSL (typically port 465)
+  helo = "{{ environ('RSPAMD_DMARC_REPORTING_DOMAIN', environ('RSPAMD_DMARC_REPORTING_FROM', 'localhost')) }}";
+  tls = true;
+  no_ssl_verify = false;
+  {%- else -%}
+  # No TLS (plain SMTP, typically port 25)
+  helo = "{{ environ('RSPAMD_DMARC_REPORTING_DOMAIN', environ('RSPAMD_DMARC_REPORTING_FROM', 'localhost')) }}";
+  {%- endif %}
+  
+  # Report settings
+  # Send reports daily
+  send_reports = true;
+  
+  # Maximum number of records per report
+  max_entries = 1000;
+}
+{%- endif %}
+
+# Additional DMARC policy enforcement options
+{% if environ('RSPAMD_REDIS_HOST') -%}
+# Store DMARC results in Redis for reporting
+backend = "redis";
+servers = "{{ environ('RSPAMD_REDIS_HOST') }}";
+{%- endif %}

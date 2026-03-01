@@ -1,0 +1,101 @@
+# Fuzzy Check Module
+# Checks messages against fuzzy storage (fuzzy hashes of known spam/ham)
+# Integrates with Dovecot user-triggered learning (via rspamc)
+#
+# NOTE: Fuzzy storage server should run in a separate container
+#       (e.g., container-rspamd-fuzzy) for scalability and shared usage
+
+{% if environ('RSPAMD_FUZZY_STORAGE_SERVER') -%}
+# Local/private fuzzy storage server
+rule "local" {
+  # Your own fuzzy storage server
+  servers = "{{ environ('_RSPAMD_FUZZY_STORAGE_SERVER') }}";
+
+  # Encryption key (must match fuzzy storage server)
+  {% if environ('RSPAMD_FUZZY_STORAGE_KEY') -%}
+  encryption_key = "{{ environ('RSPAMD_FUZZY_STORAGE_KEY') }}";
+  {%- endif %}
+
+  # Fuzzy flags configuration
+  # Flag 1: denied list (spam) - matches DOVECOT_RSPAMD_FUZZY_DENIED_TAG
+  # Flag 2: white list (ham) - matches DOVECOT_RSPAMD_FUZZY_WHITE_TAG
+  fuzzy_map = {
+    FUZZY_DENIED {
+      max_score = 20.0;
+      flag = 1;
+    }
+    FUZZY_WHITE {
+      max_score = -20.0;
+      flag = 2;
+    }
+  }
+
+  # Minimum message length to check (bytes)
+  min_length = 1024;
+
+  # Maximum contribution to spam score
+  max_score = 20.0;
+
+  # Read timeout
+  timeout = 5s;
+
+  # Retry failed servers
+  retransmits = 3;
+}
+{%- endif %}
+
+{% if environ('RSPAMD_FUZZY_UPSTREAM_ENABLED') == '1' -%}
+# Rspamd.com upstream fuzzy feeds
+# Public collaborative spam detection database
+# See: https://docs.rspamd.com/modules/fuzzy_check#rspamdcom-fuzzy-feeds
+# Configuration from: https://github.com/rspamd/rspamd/blob/rspamd-3.10/conf/modules.d/fuzzy_check.conf
+
+rule "rspamd.com" {
+  # Algorithm for checking
+  algorithm = "mumhash";
+
+  # Rspamd.com public fuzzy storage servers
+  servers = "round-robin:fuzzy1.rspamd.com:11335,fuzzy2.rspamd.com:11335";
+
+  # Public feeds use encryption
+  encryption_key = "icy63itbhhni8bq15ntp5n5symuixf73s1kpjh6skaq4e7nx5fiy";
+
+  # Symbol for generic fuzzy hash
+  symbol = "FUZZY_RSPAMD_COM";
+
+  # Additional flags for different lists
+  fuzzy_map = {
+    FUZZY_RSPAMD_COM_BLOCKED {
+      max_score = 10.0;
+      flag = 1;  # Blocked (spam)
+    }
+    FUZZY_RSPAMD_COM_WHITE {
+      max_score = -5.0;
+      flag = 2;  # Whitelist (ham)
+    }
+  }
+
+  # Read-only access (cannot learn to public feeds)
+  read_only = true;
+
+  # Skip hashes for large messages
+  skip_unknown = true;
+
+  # Minimum length
+  min_length = 1024;
+
+  # Maximum score contribution
+  max_score = 10.0;
+
+  # Timeout
+  timeout = 5s;
+}
+{%- endif %}
+
+# Symbol groups
+symbol_groups {
+  fuzzy {
+    description = "Fuzzy hashing";
+    max_score = 12.0;
+  }
+}

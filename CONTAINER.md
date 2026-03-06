@@ -27,6 +27,8 @@ RSPAMD_DKIM_DOMAINS_SELECTORS (uses keys from /etc/rspamd/dkim/) (cf. <https://d
 RSPAMD_ARC_DEFAULT_SELECTOR (uses keys from /etc/rspamd/arc/)
 RSPAMD_ARC_DOMAINS_SELECTORS (uses keys from /etc/rspamd/arc/) (cf. <https://docs.rspamd.com/modules/arc#using-maps-for-selectors-and-paths>)
 
+RSPAMD_ARC_INBOUND_DOMAIN
+
 **Key Rotation Guides:**
 
 - [DKIM Key Rotation Guide](DKIM-KEY-ROTATION.md) - Comprehensive guide for rotating DKIM signing keys

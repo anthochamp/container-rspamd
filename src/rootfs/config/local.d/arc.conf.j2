@@ -8,5 +8,6 @@ sign_authenticated = true;
 sign_local = true;
 sign_inbound = true;
 use_domain = "header";
+use_domain_sign_inbound = "{{ environ('RSPAMD_ARC_INBOUND_DOMAIN') }}";
 use_auth_results = true;
 allow_headers_fallback = true;

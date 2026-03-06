@@ -7,8 +7,10 @@
 rules {
   # IP reputation based on spam/ham history
   ip_reputation {
-    selector = "ip";
-    backend = "redis";
+    selector "ip" {
+    }
+    backend "redis" {
+    }
     symbol = "IP_REPUTATION";
 
     # Thresholds
@@ -22,8 +24,11 @@ rules {
 
   # Domain reputation (sender domain)
   sender_domain_reputation {
-    selector = "from('mime'):domain";
-    backend = "redis";
+    selector "generic" {
+      selector = "from('mime'):domain";
+    }
+    backend "redis" {
+    }
     symbol = "SENDER_DOMAIN_REPUTATION";
 
     lower_bound = 5;
@@ -34,8 +39,10 @@ rules {
 
   # SPF/DKIM/DMARC aligned domain reputation
   spf_reputation {
-    selector = "spf_domain";
-    backend = "redis";
+    selector "spf" {
+    }
+    backend "redis" {
+    }
     symbol = "SPF_REPUTATION";
 
     lower_bound = 5;
@@ -45,8 +52,10 @@ rules {
   }
 
   dkim_reputation {
-    selector = "dkim_domain";
-    backend = "redis";
+    selector "dkim" {
+    }
+    backend "redis" {
+    }
     symbol = "DKIM_REPUTATION";
 
     lower_bound = 5;

@@ -1,17 +1,13 @@
 # Fuzzy Check Module
 # Checks messages against fuzzy storage (fuzzy hashes of known spam/ham)
 # Integrates with Dovecot user-triggered learning (via rspamc)
-#
-# NOTE: Fuzzy storage server should run in a separate container
-#       (e.g., container-rspamd-fuzzy) for scalability and shared usage
 
-{% if environ('RSPAMD_FUZZY_STORAGE_SERVER') -%}
-# Local/private fuzzy storage server
+# Local fuzzy storage (runs in this container on port 11335)
 rule "local" {
-  # Your own fuzzy storage server
-  servers = "{{ environ('_RSPAMD_FUZZY_STORAGE_SERVER') }}";
+  # Connect to local fuzzy storage worker
+  servers = "127.0.0.1:11335";
 
-  # Encryption key (must match fuzzy storage server)
+  # Encryption key (must match fuzzy storage worker configuration)
   {% if environ('RSPAMD_FUZZY_STORAGE_KEY') -%}
   encryption_key = "{{ environ('RSPAMD_FUZZY_STORAGE_KEY') }}";
   {%- endif %}
@@ -42,7 +38,6 @@ rule "local" {
   # Retry failed servers
   retransmits = 3;
 }
-{%- endif %}
 
 {% if environ('RSPAMD_FUZZY_UPSTREAM_ENABLED') == '1' -%}
 # Rspamd.com upstream fuzzy feeds

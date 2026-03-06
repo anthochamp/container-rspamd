@@ -9,21 +9,19 @@ USER 0
 # hadolint ignore=DL3008
 RUN set -ex; \
 	apt-get update; \
-	apt-get install -y --no-install-recommends pipx stunnel4 supervisor; \
+	apt-get install -y --no-install-recommends pipx; \
 	apt-get clean; \
-	rm -rf /var/lib/apt/lists/*; \
-	mkdir -p /run/stunnel; \
-	chown stunnel4:stunnel4 /run/stunnel
+	rm -rf /var/lib/apt/lists/*
 
 # hadolint ignore=DL3013
 RUN pipx install jinja2-cli
 
 COPY --chmod=644 /rootfs/config /etc/rspamd/
-COPY --chmod=644 /rootfs/stunnel.conf.j2 /etc/stunnel/
-COPY --chmod=644 /rootfs/supervisord.conf /etc/supervisor/conf.d/
 
 # 11332 (worker proxy - milter protocol)
-EXPOSE 11332
+# 11334 (controller - WebUI and API)
+# 11335 (fuzzy storage)
+EXPOSE 11332 11334 11335
 
 VOLUME ["/etc/rspamd/arc/", "/etc/rspamd/dkim/", "/var/lib/rspamd/"]
 
@@ -31,7 +29,7 @@ COPY --chmod=755 /rootfs/docker-entrypoint.sh /
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 
-CMD [ "/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf" ]
+CMD ["/usr/bin/rspamd", "-f", "-u", "_rspamd", "-g", "_rspamd"]
 
 HEALTHCHECK \
 	CMD rspamc uptime || exit 1

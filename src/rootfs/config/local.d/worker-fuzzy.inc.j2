@@ -1,0 +1,33 @@
+# Fuzzy Storage Worker
+# Stores fuzzy hashes for collaborative spam detection
+# Can be shared by multiple rspamd instances
+
+# Worker configuration
+count = 1;
+backend = "redis";
+
+# Bind to all interfaces for external access
+bind_socket = "0.0.0.0:11335";
+
+# Redis backend for storage
+{% if environ('RSPAMD_REDIS_HOST') -%}
+servers = "{{ environ('RSPAMD_REDIS_HOST') }}";
+{%- endif %}
+
+# Database name
+database = "fuzzy";
+
+# Hash algorithm
+hash = "mumhash";
+
+# Expire time for fuzzy hashes (default 90 days)
+expire = 90d;
+
+# Allow learning from any IP (configure network isolation at container level)
+# In production, restrict this via firewall/network policies
+allow_update = ["0.0.0.0/0"];
+
+# Encryption key (must match clients)
+{% if environ('RSPAMD_FUZZY_STORAGE_KEY') -%}
+encryption_key = "{{ environ('RSPAMD_FUZZY_STORAGE_KEY') }}";
+{%- endif %}

@@ -1,4 +1,8 @@
+{% if environ('RSPAMD_REDIS_HOST') -%}
 servers = {{ environ('RSPAMD_REDIS_HOST') }};
 
 nrows = 2000;
 subject_privacy = true;
+{%- else -%}
+enabled = false;
+{%- endif %}

@@ -1,0 +1,48 @@
+# Fuzzy Check Module
+# Checks messages against fuzzy storage (fuzzy hashes of known spam/ham)
+# Integrates with Dovecot user-triggered learning (via rspamc)
+
+{% if environ('RSPAMD_FUZZY_UPSTREAM_ENABLED') != '1' -%}
+# Disable default rspamd.com rule (from base image)
+rule "rspamd.com" {
+  enabled = false;
+}
+{%- endif %}
+
+# Local fuzzy storage (runs in this container on port 11335)
+rule "local" {
+  # Connect to local fuzzy storage worker
+  servers = "127.0.0.1:11335";
+
+  # Encryption key (must match fuzzy storage worker configuration)
+  {% if environ('RSPAMD_FUZZY_STORAGE_KEY') -%}
+  encryption_key = "{{ environ('RSPAMD_FUZZY_STORAGE_KEY') }}";
+  {%- endif %}
+
+  # Fuzzy flags configuration
+  # Flag 1: denied list (spam) - matches DOVECOT_RSPAMD_FUZZY_DENIED_TAG
+  # Flag 2: white list (ham) - matches DOVECOT_RSPAMD_FUZZY_WHITE_TAG
+  # Using LOCAL prefix to avoid conflicts with base image symbols
+  fuzzy_map = {
+    FUZZY_LOCAL_DENIED {
+      max_score = 20.0;
+      flag = 1;
+    }
+    FUZZY_LOCAL_WHITE {
+      max_score = -20.0;
+      flag = 2;
+    }
+  }
+
+  # Minimum message length to check (bytes)
+  min_length = 1024;
+
+  # Maximum contribution to spam score
+  max_score = 20.0;
+
+  # Read timeout
+  timeout = 5s;
+
+  # Retry failed servers
+  retransmits = 3;
+}

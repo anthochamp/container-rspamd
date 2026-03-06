@@ -1,1 +1,3 @@
+{% if environ('RSPAMD_REDIS_HOST') -%}
 servers = {{ environ('RSPAMD_REDIS_HOST') }};
+{%- endif %}

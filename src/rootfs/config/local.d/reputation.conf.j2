@@ -3,15 +3,11 @@
 # Requires Redis backend for storing reputation data
 
 {% if environ('RSPAMD_REDIS_HOST') -%}
-# Backend configuration
-backend = "redis";
-
 # Reputation rules
 rules {
   # IP reputation based on spam/ham history
   ip_reputation {
-    selector "ip" {
-    }
+    selector = "ip";
     backend = "redis";
     symbol = "IP_REPUTATION";
 
@@ -26,8 +22,7 @@ rules {
 
   # Domain reputation (sender domain)
   sender_domain_reputation {
-    selector "from('mime'):domain" {
-    }
+    selector = "from('mime'):domain";
     backend = "redis";
     symbol = "SENDER_DOMAIN_REPUTATION";
 
@@ -39,8 +34,7 @@ rules {
 
   # SPF/DKIM/DMARC aligned domain reputation
   spf_reputation {
-    selector "spf_domain" {
-    }
+    selector = "spf_domain";
     backend = "redis";
     symbol = "SPF_REPUTATION";
 
@@ -51,8 +45,7 @@ rules {
   }
 
   dkim_reputation {
-    selector "dkim_domain" {
-    }
+    selector = "dkim_domain";
     backend = "redis";
     symbol = "DKIM_REPUTATION";
 

@@ -25,6 +25,6 @@
 		"@ac-essentials/misc-util": "0.6.1",
 		"@ac-essentials/biome-config": "0.4.0",
 		"@ac-essentials/markdownlint-cli2-config": "0.1.0",
-		"vitest": "4.0.18"
+		"vitest": "4.1.0"
 	}
 }

@@ -11,7 +11,10 @@ const srcPath = path.resolve(path.join(__dirname, "..", "src"));
 
 const RSPAMD_CONTROLLER_PORT = 11334;
 
-type ContainerRunOptions = Omit<DockerContainerRunOptions, "name" | "context" | "detach">;
+type ContainerRunOptions = Omit<
+	DockerContainerRunOptions,
+	"name" | "context" | "detach"
+>;
 
 export function initSuite() {
 	let pendingRunOptions: ContainerRunOptions = {};
